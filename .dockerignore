@@ -32,3 +32,6 @@
 **/dist
 LICENSE
 README.md
+npm-debug.log
+Dockerfile.dev
+docker-compose.dev.yml
