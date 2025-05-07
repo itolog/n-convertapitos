@@ -129,7 +129,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/home/projects/node_apps/convertapitos/src/prisma/generated/client",
+      "value": "/Users/home/projects/node_apps/convertapitos/prisma/generated/client",
       "fromEnvVar": null
     },
     "config": {
@@ -147,10 +147,10 @@ const config = {
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../../../.env",
-    "schemaEnvPath": "../../../../.env"
+    "rootEnvPath": null,
+    "schemaEnvPath": "../../../.env"
   },
-  "relativePath": "../../../../prisma",
+  "relativePath": "../..",
   "clientVersion": "6.7.0",
   "engineVersion": "3cff47a7f5d65c3ea74883f1d736e41d68ce91ed",
   "datasourceNames": [
@@ -166,8 +166,8 @@ const config = {
       }
     }
   },
-  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/prisma/generated/client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id            String   @id @default(uuid())\n  name          String\n  email         String   @unique\n  emailVerified Boolean?\n}\n",
-  "inlineSchemaHash": "d25135a9413cf42d2fc19cbf7bc2b83758dafa43b2bb41f9da19eb58fd611d3f",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"./generated/client\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id            String   @id @default(uuid())\n  name          String\n  email         String   @unique\n  emailVerified Boolean?\n}\n",
+  "inlineSchemaHash": "d8414d8b7cb1030c968930d0a7e8fb72fd0faf8cde7eea80f21c493163be2c45",
   "copyEngine": true
 }
 config.dirname = '/'
