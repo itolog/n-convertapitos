@@ -4,6 +4,9 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+
+import helmet from "@fastify/helmet";
 
 import { AppModule } from "./app.module";
 
@@ -15,6 +18,21 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter(),
   );
+
+  app.enableCors();
+
+  await app.register(helmet, {
+    contentSecurityPolicy: false,
+  });
+
+  const config = new DocumentBuilder()
+    .setTitle("ConvertApiTos")
+    .setDescription("The ConvertApiTos API")
+    .setVersion("1.0")
+    .build();
+  const documentFactory = () => SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup("api", app, documentFactory);
+
   await app.listen(PORT, ADDR, () => {
     Logger.log(`App listen on http://${ADDR}:${PORT}`);
   });
