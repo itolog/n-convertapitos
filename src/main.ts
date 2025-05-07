@@ -1,4 +1,4 @@
-import { Logger } from "@nestjs/common";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import {
   FastifyAdapter,
@@ -20,6 +20,7 @@ async function bootstrap() {
   );
 
   app.enableCors();
+  app.useGlobalPipes(new ValidationPipe());
 
   await app.register(helmet, {
     contentSecurityPolicy: false,
@@ -31,13 +32,17 @@ async function bootstrap() {
     .setVersion("1.0")
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api", app, documentFactory);
+  SwaggerModule.setup("api", app, documentFactory, {
+    jsonDocumentUrl: "/swagger.json",
+    yamlDocumentUrl: "/swagger.yaml",
+    customSiteTitle: "ConvertApiTos API",
+  });
 
   await app.listen(PORT, ADDR, () => {
     Logger.log(`App listen on http://${ADDR}:${PORT}`);
   });
 }
 
-bootstrap().catch(() => {
-  Logger.error("Something went wrong.");
+bootstrap().catch((e) => {
+  Logger.error(e);
 });
