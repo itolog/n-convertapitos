@@ -24,6 +24,7 @@ import { UserModule } from "./user/user.module";
         JWT_SECRET: Joi.string().required(),
         JWT_ACCESS_TOKEN_TTL: Joi.string().required(),
         JWT_REFRESH_TOKEN_TTL: Joi.string().required(),
+        COOKIE_DOMAIN: Joi.string().required(),
       }),
     }),
 

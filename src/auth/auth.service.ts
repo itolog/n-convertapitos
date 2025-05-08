@@ -3,9 +3,12 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 
 import { hash, verify } from "argon2";
+import type { FastifyReply } from "fastify";
 
 import { LoginAuthDto } from "@/src/auth/dto/login-dto";
-import { JwtPayload } from "@/src/auth/types/jwt";
+import type { JwtPayload } from "@/src/auth/types/jwt";
+import { isDev } from "@/src/common/utils/isDev";
+import { parseTimeToSeconds } from "@/src/common/utils/time-utils";
 import { PrismaService } from "@/src/prisma/prisma.service";
 import { UserService } from "@/src/user/user.service";
 
@@ -13,25 +16,26 @@ import { AuthDto } from "./dto/auth.dto";
 
 @Injectable()
 export class AuthService {
-  private readonly JWT_SECRET: string;
   private readonly JWT_ACCESS_TOKEN_TTL: string;
   private readonly JWT_REFRESH_TOKEN_TTL: string;
+  private readonly COOKIE_DOMAIN: string;
   constructor(
     private userService: UserService,
     private configService: ConfigService,
     private prisma: PrismaService,
     private jwtService: JwtService,
   ) {
-    this.JWT_SECRET = this.configService.getOrThrow<string>("JWT_SECRET");
     this.JWT_ACCESS_TOKEN_TTL = this.configService.getOrThrow<string>(
       "JWT_ACCESS_TOKEN_TTL",
     );
     this.JWT_REFRESH_TOKEN_TTL = this.configService.getOrThrow<string>(
       "JWT_REFRESH_TOKEN_TTL",
     );
+
+    this.COOKIE_DOMAIN = this.configService.getOrThrow<string>("COOKIE_DOMAIN");
   }
 
-  async login({ email, password }: LoginAuthDto) {
+  async login(res: FastifyReply, { email, password }: LoginAuthDto) {
     const user = await this.prisma.user.findUnique({
       where: { email },
       select: {
@@ -49,10 +53,10 @@ export class AuthService {
       throw new NotFoundException();
     }
 
-    return this.generateAccessToken(user.id);
+    return this.auth(res, user.id);
   }
 
-  async registration({ name, password, email }: AuthDto) {
+  async registration(res: FastifyReply, { name, password, email }: AuthDto) {
     const hashedPassword = await hash(password);
     const user = await this.userService.create({
       name,
@@ -60,7 +64,7 @@ export class AuthService {
       email,
     });
 
-    return this.generateAccessToken(user.id);
+    return this.auth(res, user.id);
   }
 
   private generateAccessToken(id: string) {
@@ -80,5 +84,29 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  private auth(res: FastifyReply, id: string) {
+    const { accessToken, refreshToken } = this.generateAccessToken(id);
+    console.log(parseTimeToSeconds(this.JWT_REFRESH_TOKEN_TTL));
+    this.setCookie(
+      res,
+      refreshToken,
+      new Date(Date.now() + parseTimeToSeconds(this.JWT_REFRESH_TOKEN_TTL)),
+    );
+
+    return {
+      accessToken,
+    };
+  }
+
+  private setCookie(res: FastifyReply, token: string, expires: Date) {
+    res.setCookie("refreshToken", token, {
+      httpOnly: true,
+      domain: this.COOKIE_DOMAIN,
+      expires,
+      secure: !isDev(this.configService),
+      sameSite: isDev(this.configService) ? "none" : "lax",
+    });
   }
 }

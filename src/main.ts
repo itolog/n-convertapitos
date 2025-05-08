@@ -7,6 +7,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
+import fastifyCookie from "@fastify/cookie";
 import helmet from "@fastify/helmet";
 
 import { AppModule } from "./app.module";
@@ -17,17 +18,19 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
 
+  const configService = app.get(ConfigService);
+  const PORT = configService.get<number>("APP_PORT") ?? 3000;
+  const ADDR = configService.get<string>("APP_ADDR") ?? "127.0.0.1";
+
   app.enableCors();
+
   app.useGlobalPipes(new ValidationPipe());
 
   await app.register(helmet, {
     contentSecurityPolicy: false,
   });
 
-  const configService = app.get(ConfigService);
-
-  const PORT = configService.get<number>("APP_PORT") ?? 3000;
-  const ADDR = configService.get<string>("APP_ADDR") ?? "127.0.0.1";
+  await app.register(fastifyCookie);
 
   const config = new DocumentBuilder()
     .setTitle("ConvertApiTos")

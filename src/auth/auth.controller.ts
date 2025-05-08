@@ -1,4 +1,13 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Res,
+} from "@nestjs/common";
+
+import type { FastifyReply } from "fastify";
 
 import { LoginAuthDto } from "@/src/auth/dto/login-dto";
 
@@ -11,13 +20,19 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post("login")
-  async login(@Body() authDto: LoginAuthDto) {
-    return await this.authService.login(authDto);
+  async login(
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() authDto: LoginAuthDto,
+  ) {
+    return await this.authService.login(res, authDto);
   }
 
   @HttpCode(HttpStatus.CREATED)
   @Post("registration")
-  async registration(@Body() authDto: AuthDto) {
-    return await this.authService.registration(authDto);
+  async registration(
+    @Res({ passthrough: true }) res: FastifyReply,
+    @Body() authDto: AuthDto,
+  ) {
+    return await this.authService.registration(res, authDto);
   }
 }
