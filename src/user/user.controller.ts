@@ -17,18 +17,18 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto) {
+    return await this.userService.create(createUserDto);
   }
 
   @Get()
-  async findAll() {
+  findAll() {
     return this.userService.findAll();
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.userService.findOne(id);
+  findById(@Param("id") id: string) {
+    return this.userService.findById(id);
   }
 
   @Patch(":id")
