@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 
 import { hash, verify } from "argon2";
-import type { FastifyReply } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 
 import { LoginAuthDto } from "@/src/auth/dto/login-dto";
 import type { JwtPayload } from "@/src/auth/types/jwt";
@@ -53,7 +57,37 @@ export class AuthService {
       throw new NotFoundException();
     }
 
-    return this.auth(res, user.id);
+    return await this.auth(res, user.id);
+  }
+
+  async logout(res: FastifyReply) {
+    await this.setCookie(res, "refreshToken", new Date(0));
+  }
+
+  async refresh(req: FastifyRequest, res: FastifyReply) {
+    const refreshToken = req.cookies["refreshToken"];
+    if (!refreshToken) {
+      throw new UnauthorizedException();
+    }
+
+    const payload: JwtPayload = await this.jwtService.verifyAsync(refreshToken);
+
+    if (payload) {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: payload.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException();
+      }
+
+      return await this.auth(res, user.id);
+    }
   }
 
   async registration(res: FastifyReply, { name, password, email }: AuthDto) {
@@ -64,7 +98,7 @@ export class AuthService {
       email,
     });
 
-    return this.auth(res, user.id);
+    return await this.auth(res, user.id);
   }
 
   private generateAccessToken(id: string) {
@@ -86,10 +120,10 @@ export class AuthService {
     };
   }
 
-  private auth(res: FastifyReply, id: string) {
+  private async auth(res: FastifyReply, id: string) {
     const { accessToken, refreshToken } = this.generateAccessToken(id);
     console.log(parseTimeToSeconds(this.JWT_REFRESH_TOKEN_TTL));
-    this.setCookie(
+    await this.setCookie(
       res,
       refreshToken,
       new Date(Date.now() + parseTimeToSeconds(this.JWT_REFRESH_TOKEN_TTL)),
@@ -100,8 +134,8 @@ export class AuthService {
     };
   }
 
-  private setCookie(res: FastifyReply, token: string, expires: Date) {
-    res.setCookie("refreshToken", token, {
+  private async setCookie(res: FastifyReply, token: string, expires: Date) {
+    await res.setCookie("refreshToken", token, {
       httpOnly: true,
       domain: this.COOKIE_DOMAIN,
       expires,
