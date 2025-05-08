@@ -5,10 +5,11 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 import fastifyCookie from "@fastify/cookie";
 import helmet from "@fastify/helmet";
+
+import setupSwagger from "@/src/common/utils/swagger.util";
 
 import { AppModule } from "./app.module";
 
@@ -32,17 +33,7 @@ async function bootstrap() {
 
   await app.register(fastifyCookie);
 
-  const config = new DocumentBuilder()
-    .setTitle("ConvertApiTos")
-    .setDescription("The ConvertApiTos API")
-    .setVersion("1.0")
-    .build();
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api", app, documentFactory, {
-    jsonDocumentUrl: "/swagger.json",
-    yamlDocumentUrl: "/swagger.yaml",
-    customSiteTitle: "ConvertApiTos API",
-  });
+  setupSwagger(app);
 
   await app.listen(PORT, ADDR, () => {
     Logger.log(`App listen on http://${ADDR}:${PORT}`);

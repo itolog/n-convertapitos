@@ -13,6 +13,7 @@ export class CreateUserDto {
     description: "User Name",
     example: "John",
     type: String,
+    maxLength: 50,
   })
   @IsString()
   @IsNotEmpty()
@@ -23,6 +24,8 @@ export class CreateUserDto {
     description: "User password",
     example: "super!pass1212",
     type: String,
+    minLength: 6,
+    maxLength: 128,
   })
   @IsNotEmpty()
   @IsString()

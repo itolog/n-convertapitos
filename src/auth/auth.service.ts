@@ -11,8 +11,8 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 
 import { LoginAuthDto } from "@/src/auth/dto/login-dto";
 import type { JwtPayload } from "@/src/auth/types/jwt";
-import { isDev } from "@/src/common/utils/isDev";
-import { parseTimeToSeconds } from "@/src/common/utils/time-utils";
+import { isDevUtil } from "@/src/common/utils/isDev.util";
+import { parseTimeToSeconds } from "@/src/common/utils/time.utils";
 import { PrismaService } from "@/src/prisma/prisma.service";
 import { UserService } from "@/src/user/user.service";
 
@@ -57,11 +57,11 @@ export class AuthService {
       throw new NotFoundException();
     }
 
-    return await this.auth(res, user.id);
+    return this.auth(res, user.id);
   }
 
-  async logout(res: FastifyReply) {
-    await this.setCookie(res, "refreshToken", new Date(0));
+  logout(res: FastifyReply) {
+    this.setCookie(res, "refreshToken", new Date(0));
   }
 
   async refresh(req: FastifyRequest, res: FastifyReply) {
@@ -86,7 +86,7 @@ export class AuthService {
         throw new NotFoundException();
       }
 
-      return await this.auth(res, user.id);
+      return this.auth(res, user.id);
     }
   }
 
@@ -98,7 +98,7 @@ export class AuthService {
       email,
     });
 
-    return await this.auth(res, user.id);
+    return this.auth(res, user.id);
   }
 
   private generateAccessToken(id: string) {
@@ -120,10 +120,10 @@ export class AuthService {
     };
   }
 
-  private async auth(res: FastifyReply, id: string) {
+  private auth(res: FastifyReply, id: string) {
     const { accessToken, refreshToken } = this.generateAccessToken(id);
-    console.log(parseTimeToSeconds(this.JWT_REFRESH_TOKEN_TTL));
-    await this.setCookie(
+
+    this.setCookie(
       res,
       refreshToken,
       new Date(Date.now() + parseTimeToSeconds(this.JWT_REFRESH_TOKEN_TTL)),
@@ -134,13 +134,13 @@ export class AuthService {
     };
   }
 
-  private async setCookie(res: FastifyReply, token: string, expires: Date) {
-    await res.setCookie("refreshToken", token, {
+  private setCookie(res: FastifyReply, token: string, expires: Date) {
+    res.setCookie("refreshToken", token, {
       httpOnly: true,
       domain: this.COOKIE_DOMAIN,
       expires,
-      secure: !isDev(this.configService),
-      sameSite: isDev(this.configService) ? "none" : "lax",
+      secure: !isDevUtil(this.configService),
+      sameSite: isDevUtil(this.configService) ? "none" : "lax",
     });
   }
 }
