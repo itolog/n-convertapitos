@@ -1,4 +1,5 @@
 import { Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import {
   FastifyAdapter,
@@ -9,9 +10,6 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "@fastify/helmet";
 
 import { AppModule } from "./app.module";
-
-const PORT = process.env.PORT ?? 3000;
-const ADDR = process.env.ADDR ?? "127.0.0.1";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -25,6 +23,11 @@ async function bootstrap() {
   await app.register(helmet, {
     contentSecurityPolicy: false,
   });
+
+  const configService = app.get(ConfigService);
+
+  const PORT = configService.get<number>("APP_PORT") ?? 3000;
+  const ADDR = configService.get<string>("APP_ADDR") ?? "127.0.0.1";
 
   const config = new DocumentBuilder()
     .setTitle("ConvertApiTos")

@@ -49,7 +49,5 @@ COPY --from=build --chown=node:node /usr/src/app/dist ./dist
 # Optional: prune unnecessary files
 RUN rm -rf node_modules/**/*.md node_modules/**/*.ts node_modules/**/test node_modules/**/__tests__
 
-# Expose the port the app runs on
-EXPOSE 3000
 # Start the app
 CMD ["yarn", "start:prod"]

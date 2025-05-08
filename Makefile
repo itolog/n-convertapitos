@@ -1,14 +1,14 @@
 .PHONY : dev
-env-dev := --env-file .env.development
+
 # Development
 dev:
-	docker compose ${env-dev} -f docker-compose.dev.yml up -d --build
+	docker compose -f docker-compose.dev.yml up -d --build
 
 dev-stop:
-	docker compose ${env-dev} -f docker-compose.dev.yml stop
+	docker compose -f docker-compose.dev.yml stop
 
 dev-down:
-	docker compose ${env-dev} -f docker-compose.dev.yml down
+	docker compose -f docker-compose.dev.yml down
 # Production
 prod:
 	docker compose up -d --build
