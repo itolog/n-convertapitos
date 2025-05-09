@@ -143,4 +143,16 @@ export class AuthService {
       sameSite: isDevUtil(this.configService) ? "none" : "lax",
     });
   }
+
+  async validate(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    return user;
+  }
 }
