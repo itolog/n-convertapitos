@@ -7,7 +7,6 @@ import {
   Post,
   Req,
   Res,
-  UseGuards,
 } from "@nestjs/common";
 import {
   ApiBadRequestResponse,
@@ -21,11 +20,11 @@ import {
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 import { User } from "@/prisma/generated/client";
+import { Authorization } from "@/src/auth/decorator/authorization.decorator";
 import { LoginAuthDto } from "@/src/auth/dto/login-dto";
-import { JwtAuthGuard } from "@/src/auth/jwt-auth.guard";
 
 import { AuthService } from "./auth.service";
-import { GetUser } from "./decorator/user.decorator";
+import { Authorized } from "./decorator/user.decorator";
 import { AuthDto, AuthResponseDto } from "./dto/auth.dto";
 
 @Controller("auth")
@@ -97,9 +96,9 @@ export class AuthController {
     return this.authService.logout(res);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Authorization()
   @Get("me")
-  me(@GetUser() user: User) {
+  me(@Authorized() user: User) {
     return user;
   }
 }

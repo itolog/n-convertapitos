@@ -1,12 +1,20 @@
-import { createParamDecorator, ExecutionContext } from "@nestjs/common";
+import { createParamDecorator, type ExecutionContext } from "@nestjs/common";
 
-// TODO: fix typing
-export const GetUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const request = ctx.switchToHttp().getRequest();
+import type { FastifyRequest } from "fastify";
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return,@typescript-eslint/no-unsafe-member-access
-    return request.user;
+import { User } from "@/prisma/generated/client";
+
+declare module "fastify" {
+  interface FastifyRequest {
+    user?: User;
+  }
+}
+
+export const Authorized = createParamDecorator(
+  (data: keyof User, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<FastifyRequest>();
+
+    const user = request.user as User;
+    return data ? user[data] : user;
   },
 );
