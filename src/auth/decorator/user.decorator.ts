@@ -1,18 +1,18 @@
 import { createParamDecorator, type ExecutionContext } from "@nestjs/common";
 
-import type { FastifyRequest } from "fastify";
+import type { Request } from "express";
 
 import { User } from "@/prisma/generated/client";
 
-declare module "fastify" {
-  interface FastifyRequest {
+declare module "express" {
+  interface Request {
     user?: User;
   }
 }
 
 export const Authorized = createParamDecorator(
   (data: keyof User, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest<FastifyRequest>();
+    const request = ctx.switchToHttp().getRequest<Request>();
 
     const user = request.user as User;
     return data ? user[data] : user;

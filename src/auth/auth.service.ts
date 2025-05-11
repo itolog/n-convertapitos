@@ -7,7 +7,7 @@ import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 
 import { hash, verify } from "argon2";
-import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Request, Response } from "express";
 
 import { LoginAuthDto } from "@/src/auth/dto/login-dto";
 import type { JwtPayload } from "@/src/auth/types/jwt";
@@ -39,7 +39,7 @@ export class AuthService {
     this.COOKIE_DOMAIN = this.configService.getOrThrow<string>("COOKIE_DOMAIN");
   }
 
-  async login(res: FastifyReply, { email, password }: LoginAuthDto) {
+  async login(res: Response, { email, password }: LoginAuthDto) {
     const user = await this.prisma.user.findUnique({
       where: { email },
       select: {
@@ -51,6 +51,14 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException();
     }
+
+    // TODO: Need to process a case of registration via Google or other provider
+    // if (!user.password) {
+    //   throw new BadRequestException(
+    //     "Probably you already have an account via Google or another provider.",
+    //   );
+    // }
+
     const isValidPassword = await verify(user.password, password);
 
     if (!isValidPassword) {
@@ -60,12 +68,12 @@ export class AuthService {
     return this.auth(res, user.id);
   }
 
-  logout(res: FastifyReply) {
+  logout(res: Response) {
     this.setCookie(res, "refreshToken", new Date(0));
   }
 
-  async refresh(req: FastifyRequest, res: FastifyReply) {
-    const refreshToken = req.cookies["refreshToken"];
+  async refresh(req: Request, res: Response) {
+    const refreshToken = req.cookies["refreshToken"] as string | undefined;
     if (!refreshToken) {
       throw new UnauthorizedException();
     }
@@ -90,7 +98,7 @@ export class AuthService {
     }
   }
 
-  async registration(res: FastifyReply, { name, password, email }: AuthDto) {
+  async registration(res: Response, { name, password, email }: AuthDto) {
     const hashedPassword = await hash(password);
     const user = await this.userService.create({
       name,
@@ -120,7 +128,7 @@ export class AuthService {
     };
   }
 
-  private auth(res: FastifyReply, id: string) {
+  private auth(res: Response, id: string) {
     const { accessToken, refreshToken } = this.generateAccessToken(id);
 
     this.setCookie(
@@ -134,8 +142,8 @@ export class AuthService {
     };
   }
 
-  private setCookie(res: FastifyReply, token: string, expires: Date) {
-    res.setCookie("refreshToken", token, {
+  private setCookie(res: Response, token: string, expires: Date) {
+    res.cookie("refreshToken", token, {
       httpOnly: true,
       domain: this.COOKIE_DOMAIN,
       expires,
@@ -156,7 +164,7 @@ export class AuthService {
     return user;
   }
 
-  async googleLogin(req: FastifyRequest, res: FastifyReply) {
+  async googleAuth(req: Request, res: Response) {
     if (!req.user) {
       throw new UnauthorizedException();
     }
@@ -173,7 +181,7 @@ export class AuthService {
         name: `${req.user.name}`,
         email: req.user.email,
         password: "",
-        googleId: req.user.id,
+        photo: req.user?.photo ?? null,
       });
     }
 

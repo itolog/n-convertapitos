@@ -17,7 +17,7 @@ import {
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger";
 
-import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Request, Response } from "express";
 
 import { User } from "@/prisma/generated/client";
 import {
@@ -46,7 +46,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post("login")
   async login(
-    @Res({ passthrough: true }) res: FastifyReply,
+    @Res({ passthrough: true }) res: Response,
     @Body() authDto: LoginAuthDto,
   ) {
     return await this.authService.login(res, authDto);
@@ -66,7 +66,7 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @Post("registration")
   async registration(
-    @Res({ passthrough: true }) res: FastifyReply,
+    @Res({ passthrough: true }) res: Response,
     @Body() authDto: AuthDto,
   ) {
     return await this.authService.registration(res, authDto);
@@ -83,8 +83,8 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @Post("refresh")
   async refresh(
-    @Req() req: FastifyRequest,
-    @Res({ passthrough: true }) res: FastifyReply,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
     return await this.authService.refresh(req, res);
   }
@@ -95,7 +95,7 @@ export class AuthController {
   })
   @HttpCode(HttpStatus.OK)
   @Post("logout")
-  logout(@Res({ passthrough: true }) res: FastifyReply) {
+  logout(@Res({ passthrough: true }) res: Response) {
     return this.authService.logout(res);
   }
 
@@ -107,16 +107,14 @@ export class AuthController {
 
   @Get("google")
   @GoogleAuthorization()
-  googleAuth() {
-    // Инициирует процесс аутентификации Google
-  }
+  googleAuth() {}
 
   @Get("google/callback")
   @GoogleAuthorization()
   googleAuthCallback(
-    @Req() req: FastifyRequest,
-    @Res({ passthrough: true }) res: FastifyReply,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
   ) {
-    return this.authService.googleLogin(req, res);
+    return this.authService.googleAuth(req, res);
   }
 }

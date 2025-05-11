@@ -1,23 +1,17 @@
 import { Logger, ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { NestExpressApplication } from "@nestjs/platform-express";
 
-import fastifyCookie from "@fastify/cookie";
-import helmet from "@fastify/helmet";
+import * as cookieParser from "cookie-parser";
+import helmet from "helmet";
 
 import setupSwagger from "@/src/common/utils/swagger.util";
 
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    AppModule,
-    new FastifyAdapter(),
-  );
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const configService = app.get(ConfigService);
   const PORT = configService.get<number>("APP_PORT") ?? 3000;
@@ -27,11 +21,9 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe());
 
-  await app.register(helmet, {
-    contentSecurityPolicy: false,
-  });
+  app.use(helmet());
 
-  await app.register(fastifyCookie);
+  app.use(cookieParser());
 
   setupSwagger(app);
 
