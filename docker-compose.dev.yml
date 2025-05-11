@@ -1,24 +1,24 @@
 name: convertapitos-dev
 services:
-  server:
-    container_name: server_dev
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    environment:
-      NODE_ENV: development
-    ports:
-      - "${APP_PORT}:${APP_PORT}"
-    env_file:
-      - .env.development
-    volumes:
-      - .:/usr/src/app
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - app-network
-    command: ["npm", "run", "start:dev"]
+#  server:
+#    container_name: server_dev
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dev
+#    environment:
+#      NODE_ENV: development
+#    ports:
+#      - "${APP_PORT}:${APP_PORT}"
+#    env_file:
+#      - .env.development
+#    volumes:
+#      - .:/usr/src/app
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#    networks:
+#      - app-network
+#    command: ["npm", "run", "start:dev"]
 
   postgres:
     image: postgres:latest
