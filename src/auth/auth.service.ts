@@ -155,4 +155,28 @@ export class AuthService {
 
     return user;
   }
+
+  async googleLogin(req: FastifyRequest, res: FastifyReply) {
+    if (!req.user) {
+      throw new UnauthorizedException();
+    }
+
+    let user = await this.prisma.user.findUnique({
+      where: { email: req.user.email },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!user) {
+      user = await this.userService.create({
+        name: `${req.user.name}`,
+        email: req.user.email,
+        password: "",
+        googleId: req.user.id,
+      });
+    }
+
+    return this.auth(res, user.id);
+  }
 }

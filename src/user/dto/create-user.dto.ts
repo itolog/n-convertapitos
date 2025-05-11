@@ -43,4 +43,12 @@ export class CreateUserDto {
   @IsString()
   @IsEmail()
   email: string;
+
+  @ApiProperty({
+    description: "Google ID",
+    example: "1234567890",
+    type: String,
+  })
+  @IsString()
+  googleId?: string;
 }

@@ -20,7 +20,10 @@ import {
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 import { User } from "@/prisma/generated/client";
-import { Authorization } from "@/src/auth/decorator/authorization.decorator";
+import {
+  Authorization,
+  GoogleAuthorization,
+} from "@/src/auth/decorator/authorization.decorator";
 import { LoginAuthDto } from "@/src/auth/dto/login-dto";
 
 import { AuthService } from "./auth.service";
@@ -100,5 +103,20 @@ export class AuthController {
   @Get("me")
   me(@Authorized() user: User) {
     return user;
+  }
+
+  @Get("google")
+  @GoogleAuthorization()
+  googleAuth() {
+    // Инициирует процесс аутентификации Google
+  }
+
+  @Get("google/callback")
+  @GoogleAuthorization()
+  googleAuthCallback(
+    @Req() req: FastifyRequest,
+    @Res({ passthrough: true }) res: FastifyReply,
+  ) {
+    return this.authService.googleLogin(req, res);
   }
 }
